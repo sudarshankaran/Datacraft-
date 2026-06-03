@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCraft - Generate Realistic Data in Seconds</title>
+    <meta name="description" content="Create synthetic datasets for testing, analytics, machine learning, education, and software development directly in your browser.">
+    <meta property="og:title" content="DataCraft - Synthetic Data Generation">
+    <meta property="og:description" content="Generate realistic sample datasets instantly. Privacy-first, 100% browser-based.">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232563EB'/%3E%3Cpath d='M30 50 L50 70 L70 30' stroke='white' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables & Theme */
+        :root {
+            --primary: #2563EB;
+            --secondary: #1E40AF;
+            --accent: #06B6D4;
+            --success: #10B981;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --card-bg-rgb: 255, 255, 255;
+            --text: #0F172A;
+            --muted: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --font-main: 'Inter', sans-serif;
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0F172A;
+            --card-bg: #1E293B;
+            --card-bg-rgb: 30, 41, 59;
+            --text: #F8FAFC;
+            --muted: #94A3B8;
+            --border: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Reset & Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background-color: var(--bg); color: var(--text); line-height: 1.6; transition: background-color 0.3s, color 0.3s; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button, input, select { font-family: inherit; }
+
+        /* Typography */
+        h1, h2, h3 { color: var(--text); font-weight: 700; line-height: 1.2; }
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+        h2 { font-size: 2rem; margin-bottom: 1.5rem; }
+        p { color: var(--muted); margin-bottom: 1rem; }
+
+        /* Layout & Components */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+        .glass-panel { background: rgba(var(--card-bg-rgb), 0.8); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: var(--transition); border: none; gap: 0.5rem; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39); }
+        .btn-primary:hover { background: var(--secondary); transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-success { background: var(--success); color: white; }
+
+        /* Navbar */
+        nav { position: fixed; top: 0; width: 100%; z-index: 1000; padding: 1rem 0; border-bottom: 1px solid var(--border); transition: var(--transition); }
+        nav.scrolled { background: rgba(var(--card-bg-rgb), 0.9); backdrop-filter: blur(10px); }
+        .nav-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-link { cursor: pointer; font-weight: 500; color: var(--text); transition: color 0.2s; }
+        .nav-link:hover { color: var(--primary); }
+        #theme-toggle { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text); }
+
+        /* SPA Sections */
+        .page-section { display: none; padding-top: 6rem; min-height: calc(100vh - 80px); animation: fadeIn 0.4s ease; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Hero Section */
+        .hero { text-align: center; padding: 6rem 0 4rem; position: relative; }
+        .hero-subtitle { font-size: 1.25rem; max-width: 600px; margin: 0 auto 2.5rem; }
+        .hero-buttons { display: flex; gap: 1rem; justify-content: center; }
+        .hero-bg { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(37,99,235,0.05) 0%, transparent 60%); z-index: -1; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: center; margin-top: 3rem; }
+        .stat-card { padding: 2rem; text-align: center; }
+        .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+
+        /* Dashboard UI (Generator) */
+        .dashboard-grid { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; margin-top: 3rem; align-items: start; }
+        .sidebar { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        .control-group label { display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .control-group input[type="number"], .control-group select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); outline: none; }
+        .control-group input:focus, .control-group select:focus { border-color: var(--primary); }
+        
+        .category-group { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .category-header { background: rgba(0,0,0,0.02); padding: 0.75rem 1rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .category-items { padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; }
+
+        /* Data Table & Preview */
+        .preview-area { display: flex; flex-direction: column; gap: 1.5rem; overflow: hidden; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .search-box { padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); width: 300px; }
+        .export-group { display: flex; gap: 0.5rem; }
+
+        .table-container { overflow-x: auto; max-height: 600px; border-radius: var(--radius); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { position: sticky; top: 0; background: var(--card-bg); z-index: 10; padding: 1rem; font-weight: 600; border-bottom: 2px solid var(--border); color: var(--text); cursor: pointer; white-space: nowrap; }
+        th:hover { background: var(--bg); }
+        td { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(37, 99, 235, 0.05); }
+
+        .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; align-items: center; }
+        .page-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); background: var(--card-bg); border-radius: 6px; cursor: pointer; color: var(--text); }
+        .page-btn:hover:not(:disabled) { background: var(--primary); color: white; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* General Pages Content */
+        .content-card { max-width: 800px; margin: 0 auto; padding: 3rem; }
+        .content-card h2 { margin-top: 2rem; color: var(--primary); }
+        .content-card ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: var(--muted); }
+        .faq-item { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+        .contact-form { display: flex; flex-direction: column; gap: 1.5rem; }
+        .contact-form input, .contact-form textarea { width: 100%; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+
+        /* Features Section */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .feature-card { padding: 2rem; text-align: left; transition: var(--transition); }
+        .feature-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .feature-icon { font-size: 2rem; margin-bottom: 1rem; color: var(--primary); }
+
+        /* Footer */
+        footer { border-top: 1px solid var(--border); padding: 4rem 0 2rem; margin-top: 4rem; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+        .footer-links h4 { margin-bottom: 1rem; color: var(--text); }
+        .footer-links ul { display: flex; flex-direction: column; gap: 0.5rem; }
+        .footer-bottom { text-align: center; color: var(--muted); padding-top: 2rem; border-top: 1px solid var(--border); }
+
+        /* Toast Notifications */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--card-bg); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; border-radius: 6px; box-shadow: var(--shadow); color: var(--text); animation: slideInRight 0.3s ease forwards; display: flex; align-items: center; gap: 10px; }
+        .toast.success { border-color: var(--success); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Loader */
+        .loader { display: none; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; } /* Simplified mobile for constraints */
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="glass-panel" id="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#2563EB"/><path d="M30 50 L50 70 L70 30" stroke="white" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                DataCraft
+            </div>
+            <ul class="nav-links">
+                <li><a class="nav-link" onclick="navigate('home')">Home</a></li>
+                <li><a class="nav-link" onclick="navigate('features')">Features</a></li>
+                <li><a class="nav-link" onclick="navigate('about')">About</a></li>
+                <li><a class="nav-link" onclick="navigate('pricing')">Pricing</a></li>
+                <li><button id="theme-toggle">🌙</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main id="app-content">
+        <section id="home" class="page-section active container">
+            <div class="hero">
+                <div class="hero-bg"></div>
+                <h1>Generate Realistic Data in Seconds</h1>
+                <p class="hero-subtitle">Create synthetic datasets for testing, analytics, machine learning, education, and software development.</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="document.getElementById('generator-tool').scrollIntoView({behavior: 'smooth'})">Generate Dataset</button>
+                    <button class="btn btn-outline" onclick="navigate('features')">View Features</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="glass-panel stat-card">
+                        <div class="stat-number counter" data-target="100000">0</div>
+                        <p>Datasets Generated</p>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-number counter" data-target="50">0</div>
+                        <p>Data Types</p>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-number counter" data-target="20">0</div>
+                        <p>Countries</p>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-number">99.9%</div>
+                        <p>Browser Performance</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid" id="generator-tool">
+                <aside class="glass-panel sidebar">
+                    <h3>Configuration</h3>
+                    
+                    <div class="control-group">
+                        <label>Rows (1 - 100,000)</label>
+                        <input type="number" id="rowCount" value="100" min="1" max="100000">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Country Context</label>
+                        <select id="countrySelect">
+                            <option value="US">USA</option>
+                            <option value="UK">UK</option>
+                            <option value="IN">India</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                            <option value="JP">Japan</option>
+                            <option value="CN">China</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
+                            <option value="PK">Pakistan</option>
+                            <option value="BD">Bangladesh</option>
+                            <option value="ZA">South Africa</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Data Quality</label>
+                        <select id="qualitySelect">
+                            <option value="clean">Clean</option>
+                            <option value="messy">Messy (Nulls/Typos)</option>
+                        </select>
+                    </div>
+
+                    <div id="schema-builder">
+                        </div>
+
+                    <button class="btn btn-primary" id="btn-generate" style="width:100%">
+                        <div class="loader" id="gen-loader"></div> 
+                        <span>Generate Data</span>
+                    </button>
+                </aside>
+
+                <div class="preview-area">
+                    <div class="glass-panel" style="padding: 1.5rem;">
+                        <div class="toolbar">
+                            <input type="text" class="search-box" id="searchInput" placeholder="Search preview data...">
+                            <div class="export-group">
+                                <button class="btn btn-outline" onclick="exportData('csv')">CSV</button>
+                                <button class="btn btn-outline" onclick="exportData('json')">JSON</button>
+                                <button class="btn btn-outline" onclick="exportData('sql')">SQL</button>
+                                <button class="btn btn-outline" onclick="exportData('excel')">Excel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel table-container">
+                        <table id="dataTable">
+                            <thead>
+                                <tr id="tableHeader">
+                                    <th>Select fields to generate preview...</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="pagination glass-panel" style="padding: 1rem;">
+                        <button class="page-btn" id="prevPage" onclick="changePage(-1)">Previous</button>
+                        <span id="pageInfo">Page 1 of 1</span>
+                        <button class="page-btn" id="nextPage" onclick="changePage(1)">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="page-section container hidden">
+            <div class="content-card glass-panel" style="max-width: 1200px;">
+                <h1 style="text-align: center;">Powerful Features</h1>
+                <p style="text-align: center;">Everything you need to create realistic test environments.</p>
+                <div class="features-grid">
+                    <div class="glass-panel feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Fast Generation</h3>
+                        <p>Generate up to 100,000 rows in milliseconds using optimized vanilla JavaScript algorithms directly in your browser.</p>
+                    </div>
+                    <div class="glass-panel feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Privacy First</h3>
+                        <p>No Server Required. 100% Browser Based. Your data models and configurations never leave your machine.</p>
+                    </div>
+                    <div class="glass-panel feature-card">
+                        <div class="feature-icon">📁</div>
+                        <h3>Multiple Formats</h3>
+                        <p>Export instantly to CSV, JSON, SQL, or Excel compatible formats to fit right into your existing tech stack.</p>
+                    </div>
+                    <div class="glass-panel feature-card">
+                        <div class="feature-icon">👩‍💻</div>
+                        <h3>Developer Friendly</h3>
+                        <p>Designed by developers for developers. Clean data types, messy simulation for QA, and rich relational mapping.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="page-section container hidden">
+            <div class="glass-panel content-card">
+                <h1>About DataCraft</h1>
+                <p>DataCraft is a browser-based synthetic data generation platform designed for developers, analysts, QA engineers, educators, and businesses.</p>
+                <p>In modern software development, testing with production data is a massive security and privacy risk. DataCraft solves this by allowing you to instantly spin up thousands of rows of realistic, localized data without ever making a server request.</p>
+                <p>All datasets are generated locally within your browser, ensuring complete privacy and security.</p>
+            </div>
+        </section>
+
+        <section id="privacy" class="page-section container hidden">
+            <div class="glass-panel content-card">
+                <h1>Privacy Policy</h1>
+                <h2>1. Data Collection</h2>
+                <p>DataCraft operates on a strict zero-data-retention model. We do not track users.</p>
+                <h2>2. Local Processing</h2>
+                <ul>
+                    <li>No server processing occurs when generating your data.</li>
+                    <li>No cookies are used for tracking.</li>
+                    <li>Everything generated stays on your local machine.</li>
+                </ul>
+                <h2>3. GDPR Compliance</h2>
+                <p>Because no personal data is collected, transmitted, or stored on our servers, DataCraft is inherently privacy-friendly and fully compliant with GDPR regulations.</p>
+            </div>
+        </section>
+        
+        <section id="terms" class="page-section container hidden">
+            <div class="glass-panel content-card">
+                <h1>Terms & Conditions</h1>
+                <h2>1. Acceptable Use</h2>
+                <p>You may use generated datasets for commercial, educational, and personal projects.</p>
+                <h2>2. Disclaimer</h2>
+                <p>The data generated is synthetic and randomly compiled. Any resemblance to real persons, businesses, or events is purely coincidental.</p>
+                <h2>3. Limitation of Liability</h2>
+                <p>DataCraft is provided "as is" without warranty. We are not liable for any issues arising from the use of synthetic data in your production or test environments.</p>
+            </div>
+        </section>
+
+        <section id="contact" class="page-section container hidden">
+            <div class="dashboard-grid">
+                <div class="glass-panel content-card" style="margin:0;">
+                    <h1>Contact Us</h1>
+                    <form class="contact-form" onsubmit="event.preventDefault(); showToast('Message sent successfully!', 'success');">
+                        <div>
+                            <label>Name</label>
+                            <input type="text" required>
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <input type="email" required>
+                        </div>
+                        <div>
+                            <label>Message</label>
+                            <textarea rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+                
+                <div class="glass-panel content-card" style="margin:0;">
+                    <h1>FAQ</h1>
+                    <div class="faq-item">
+                        <h3>How does DataCraft work?</h3>
+                        <p>It uses browser-side JavaScript to randomly compile and format synthetic data based on the schemas you select.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Is my data private?</h3>
+                        <p>Yes. 100% of the generation happens in your RAM. Nothing is sent to a server.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Can I use generated data commercially?</h3>
+                        <p>Absolutely. The generated data is free of copyright and completely yours to use.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="page-section container hidden">
+            <div class="glass-panel content-card" style="text-align: center;">
+                <h1>Pricing</h1>
+                <p>DataCraft is currently 100% Free and Open Source for basic usage.</p>
+                <h2 style="font-size: 4rem; color: var(--primary); margin: 2rem 0;">$0</h2>
+                <p>Unlimited Generations • Browser-Based • All Export Formats</p>
+                <button class="btn btn-primary" style="margin-top:2rem;" onclick="navigate('home')">Start Generating Now</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container">
+        <div class="footer-grid">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#2563EB"/><path d="M30 50 L50 70 L70 30" stroke="white" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                DataCraft
+            </div>
+            <div class="footer-links">
+                <h4>Product</h4>
+                <ul>
+                    <li><a class="nav-link" onclick="navigate('home')">Home</a></li>
+                    <li><a class="nav-link" onclick="navigate('features')">Features</a></li>
+                    <li><a class="nav-link" onclick="navigate('pricing')">Pricing</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a class="nav-link" onclick="navigate('about')">About</a></li>
+                    <li><a class="nav-link" onclick="navigate('privacy')">Privacy Policy</a></li>
+                    <li><a class="nav-link" onclick="navigate('terms')">Terms & Conditions</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Connect</h4>
+                <ul>
+                    <li><a class="nav-link" onclick="navigate('contact')">Contact</a></li>
+                    <li><a href="javascript:void(0)">GitHub</a></li>
+                    <li><a href="javascript:void(0)">LinkedIn</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2024DataCraft. All Rights Reserved.
+        </div>
+    </footer>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // --- 1. State Management ---
+        const state = {
+            data: [],
+            filteredData: [],
+            currentPage: 1,
+            rowsPerPage: 10,
+            sortCol: null,
+            sortAsc: true
+        };
+
+        // --- 2. Theme & Navbar Logic ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const root = document.documentElement;
+        
+        // Init theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeToggle.textContent = '🌙';
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                document.getElementById('navbar').classList.add('scrolled');
+            } else {
+                document.getElementById('navbar').classList.remove('scrolled');
+            }
+        });
+
+        // --- 3. SPA Navigation ---
+        function navigate(pageId) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- 4. UI Components (Toasts, Counters) ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `${type === 'success' ? '✅' : 'ℹ️'} ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Animate counters on load
+        document.querySelectorAll('.counter').forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const increment = target / 100;
+            let current = 0;
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.innerText = Math.ceil(current).toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.innerText = target.toLocaleString() + '+';
+                }
+            };
+            updateCounter();
+        });
+
+        // --- 5. Data Generator Engine ---
+        
+        // Schema Definition
+        const schemaCategories = {
+            "General Data": ["Name", "Email", "Phone", "Address", "Age", "Gender", "DOB", "Country", "City"],
+            "Business Data": ["Company Name", "Department", "Employee ID", "Salary", "Joining Date"],
+            "E-Commerce Data": ["Order ID", "Product ID", "Product Name", "Category", "Price", "Payment Method", "Order Status"],
+            "Healthcare Data": ["Patient ID", "Doctor Name", "Blood Group", "Disease", "Insurance Provider", "Bill Amount"],
+            "Finance Data": ["Account Number", "Transaction ID", "Currency", "Amount", "Merchant Name", "IBAN"],
+            "Social Media Data": ["User ID", "Username", "Post ID", "Likes", "Comments", "Shares"]
+        };
+
+        // Render Schema Builder
+        const schemaContainer = document.getElementById('schema-builder');
+        Object.keys(schemaCategories).forEach((category, idx) => {
+            const group = document.createElement('div');
+            group.className = 'category-group';
+            
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.innerHTML = `<span>${category}</span> <span>▼</span>`;
+            
+            const items = document.createElement('div');
+            items.className = 'category-items';
+            items.style.display = idx === 0 ? 'flex' : 'none'; // Only open first by default
+            
+            header.onclick = () => {
+                items.style.display = items.style.display === 'none' ? 'flex' : 'none';
+            };
+
+            schemaCategories[category].forEach(field => {
+                const lbl = document.createElement('label');
+                lbl.className = 'checkbox-label';
+                // Check first 4 fields of General Data by default
+                const isChecked = idx === 0 && schemaCategories[category].indexOf(field) < 4 ? 'checked' : '';
+                lbl.innerHTML = `<input type="checkbox" value="${field}" class="schema-field" ${isChecked}> ${field}`;
+                items.appendChild(lbl);
+            });
+
+            group.appendChild(header);
+            group.appendChild(items);
+            schemaContainer.appendChild(group);
+        });
+
+        // Mock Data Dictionary (Compressed for limits)
+        const mockDict = {
+            fNames: ["John","Emma","Michael","Sophia","William","Olivia","James","Ava","Alexander","Isabella","David","Mia"],
+            lNames: ["Smith","Johnson","Brown","Taylor","Anderson","Thomas","Jackson","White","Harris","Martin","Lee","Walker"],
+            domains: ["gmail.com","yahoo.com","hotmail.com","company.com","startup.io"],
+            cities: ["New York","London","Mumbai","Berlin","Paris","Toronto","Sydney","Tokyo","Beijing","Sao Paulo"],
+            companies: ["TechCorp","GlobalNet","InnoSystems","PrimeSolutions","ApexDynamics"],
+            depts: ["HR","Engineering","Sales","Marketing","Finance","Support"],
+            products: ["Laptop","Smartphone","Headphones","Desk Chair","Coffee Maker","Monitor"],
+            categories: ["Electronics","Furniture","Home","Accessories","Clothing"],
+            payMethods: ["Credit Card","PayPal","Stripe","Crypto","Bank Transfer"],
+            statuses: ["Pending","Completed","Shipped","Cancelled","Refunded"],
+            blood: ["A+","O+","B+","AB+","A-","O-"],
+            diseases: ["Flu","Hypertension","Diabetes","Asthma","Migraine","None"],
+            insurances: ["HealthFirst","BlueCross","MediCare","SafeLife","None"],
+            merchants: ["Amazon","Walmart","Target","Starbucks","Uber","Apple"],
+            currencies: ["USD","EUR","GBP","INR","JPY"]
+        };
+
+        const randomEl = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const randomNum = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const randomStr = (len) => Math.random().toString(36).substring(2, 2 + len).toUpperCase();
+
+        // Field Generator Map
+        const generateField = (field, isMessy) => {
+            if (isMessy && Math.random() < 0.05) return null; // Inject nulls for messy data
+
+            const fn = randomEl(mockDict.fNames);
+            const ln = randomEl(mockDict.lNames);
+            
+            switch(field) {
+                case "Name": return `${fn} ${ln}`;
+                case "Email": return `${fn.toLowerCase()}.${ln.toLowerCase()}${randomNum(1,99)}@${randomEl(mockDict.domains)}`;
+                case "Phone": return `+1-${randomNum(100,999)}-${randomNum(100,999)}-${randomNum(1000,9999)}`;
+                case "Address": return `${randomNum(10,9999)} ${randomEl(["Main St","Oak Dr","Maple Ave","Cedar Ln"])}`;
+                case "Age": return randomNum(18, 80);
+                case "Gender": return randomEl(["Male", "Female", "Non-Binary"]);
+                case "DOB": 
+                    const year = randomNum(1960, 2005);
+                    const month = String(randomNum(1, 12)).padStart(2, '0');
+                    const day = String(randomNum(1, 28)).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                case "Country": return document.getElementById('countrySelect').options[document.getElementById('countrySelect').selectedIndex].text;
+                case "City": return randomEl(mockDict.cities);
+                
+                case "Company Name": return randomEl(mockDict.companies);
+                case "Department": return randomEl(mockDict.depts);
+                case "Employee ID": return `EMP-${randomNum(1000,9999)}`;
+                case "Salary": return randomNum(40000, 150000);
+                case "Joining Date": return `202${randomNum(0,4)}-0${randomNum(1,9)}-1${randomNum(0,5)}`;
+                
+                case "Order ID": return `ORD-${randomNum(10000,99999)}`;
+                case "Product ID": return `PRD-${randomStr(5)}`;
+                case "Product Name": return randomEl(mockDict.products);
+                case "Category": return randomEl(mockDict.categories);
+                case "Price": return (Math.random() * 1000).toFixed(2);
+                case "Payment Method": return randomEl(mockDict.payMethods);
+                case "Order Status": return randomEl(mockDict.statuses);
+
+                case "Patient ID": return `PAT-${randomStr(6)}`;
+                case "Doctor Name": return `Dr. ${randomEl(mockDict.lNames)}`;
+                case "Blood Group": return randomEl(mockDict.blood);
+                case "Disease": return randomEl(mockDict.diseases);
+                case "Insurance Provider": return randomEl(mockDict.insurances);
+                case "Bill Amount": return randomNum(100, 5000);
+
+                case "Account Number": return randomNum(1000000000, 9999999999);
+                case "Transaction ID": return `TXN-${randomStr(8)}`;
+                case "Currency": return randomEl(mockDict.currencies);
+                case "Amount": return (Math.random() * 5000).toFixed(2);
+                case "Merchant Name": return randomEl(mockDict.merchants);
+                case "IBAN": return `US${randomNum(10,99)}BOFA${randomNum(1000000000, 9999999999)}`;
+
+                case "User ID": return `@${fn.toLowerCase()}${randomNum(10,99)}`;
+                case "Username": return `${fn.toLowerCase()}_${ln.toLowerCase()}`;
+                case "Post ID": return `PST-${randomNum(1000,9999)}`;
+                case "Likes": return randomNum(0, 10000);
+                case "Comments": return randomNum(0, 500);
+                case "Shares": return randomNum(0, 100);
+
+                default: return "Data";
+            }
+        };
+
+        // Generate Action
+        document.getElementById('btn-generate').addEventListener('click', () => {
+            const loader = document.getElementById('gen-loader');
+            const btnText = document.querySelector('#btn-generate span');
+            loader.style.display = 'block';
+            btnText.style.display = 'none';
+
+            setTimeout(() => {
+                const rows = parseInt(document.getElementById('rowCount').value) || 10;
+                const isMessy = document.getElementById('qualitySelect').value === 'messy';
+                
+                // Get checked fields
+                const checkedBoxes = Array.from(document.querySelectorAll('.schema-field:checked'));
+                const fields = checkedBoxes.map(cb => cb.value);
+
+                if (fields.length === 0) {
+                    showToast('Please select at least one field!', 'info');
+                    loader.style.display = 'none';
+                    btnText.style.display = 'block';
+                    return;
+                }
+
+                const generated = [];
+                for(let i=0; i<rows; i++) {
+                    const rowObj = {};
+                    fields.forEach(f => {
+                        rowObj[f] = generateField(f, isMessy);
+                    });
+                    generated.push(rowObj);
+                }
+
+                state.data = generated;
+                state.filteredData = [...generated];
+                state.currentPage = 1;
+
+                renderTable();
+                showToast(`Generated ${rows} rows successfully!`, 'success');
+
+                loader.style.display = 'none';
+                btnText.style.display = 'block';
+            }, 50); // small timeout to allow UI update
+        });
+
+        // --- 6. Table Preview Logic ---
+
+        function renderTable() {
+            const tableHead = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+            
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (state.filteredData.length === 0) {
+                tableHead.innerHTML = '<th>No data generated yet.</th>';
+                document.getElementById('pageInfo').innerText = `Page 1 of 1`;
+                return;
+            }
+
+            // Headers
+            const cols = Object.keys(state.filteredData[0]);
+            cols.forEach(col => {
+                const th = document.createElement('th');
+                th.innerText = col + (state.sortCol === col ? (state.sortAsc ? ' ↑' : ' ↓') : '');
+                th.onclick = () => sortTable(col);
+                tableHead.appendChild(th);
+            });
+
+            // Pagination Logic
+            const totalPages = Math.ceil(state.filteredData.length / state.rowsPerPage);
+            const start = (state.currentPage - 1) * state.rowsPerPage;
+            const end = start + state.rowsPerPage;
+            const pageData = state.filteredData.slice(start, end);
+
+            // Rows
+            pageData.forEach(row => {
+                const tr = document.createElement('tr');
+                cols.forEach(col => {
+                    const td = document.createElement('td');
+                    td.innerText = row[col] !== null ? row[col] : 'NULL';
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+
+            // Update Pagination UI
+            document.getElementById('pageInfo').innerText = `Page ${state.currentPage} of ${totalPages || 1}`;
+            document.getElementById('prevPage').disabled = state.currentPage === 1;
+            document.getElementById('nextPage').disabled = state.currentPage === totalPages || totalPages === 0;
+        }
+
+        function sortTable(col) {
+            if (state.sortCol === col) {
+                state.sortAsc = !state.sortAsc;
+            } else {
+                state.sortCol = col;
+                state.sortAsc = true;
+            }
+
+            state.filteredData.sort((a, b) => {
+                let valA = a[col] === null ? '' : a[col];
+                let valB = b[col] === null ? '' : b[col];
+                
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return state.sortAsc ? -1 : 1;
+                if (valA > valB) return state.sortAsc ? 1 : -1;
+                return 0;
+            });
+            
+            state.currentPage = 1;
+            renderTable();
+        }
+
+        function changePage(dir) {
+            state.currentPage += dir;
+            renderTable();
+        }
+
+        // Search
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            if (!term) {
+                state.filteredData = [...state.data];
+            } else {
+                state.filteredData = state.data.filter(row => {
+                    return Object.values(row).some(val => 
+                        val !== null && String(val).toLowerCase().includes(term)
+                    );
+                });
+            }
+            state.currentPage = 1;
+            renderTable();
+        });
+
+        // --- 7. Export System ---
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Exported ${filename} successfully!`, 'success');
+        }
+
+        function exportData(format) {
+            if (state.data.length === 0) {
+                showToast('No data to export. Generate data first.', 'info');
+                return;
+            }
+
+            let content = '';
+            let filename = '';
+            let mimeType = '';
+
+            const cols = Object.keys(state.data[0]);
+
+            switch(format) {
+                case 'json':
+                    content = JSON.stringify(state.data, null, 2);
+                    filename = 'datacraft-export.json';
+                    mimeType = 'application/json';
+                    break;
+                case 'csv':
+                case 'excel':
+                    // Map to CSV structure. Excel can read standard CSV perfectly.
+                    // Adding BOM for Excel UTF-8 compatibility
+                    content = '\uFEFF' + cols.join(',') + '\n';
+                    state.data.forEach(row => {
+                        content += cols.map(c => {
+                            let val = row[c] === null ? '' : String(row[c]);
+                            // Escape quotes and wrap in quotes if contains comma
+                            val = val.replace(/"/g, '""');
+                            if(val.includes(',')) val = `"${val}"`;
+                            return val;
+                        }).join(',') + '\n';
+                    });
+                    filename = format === 'excel' ? 'datacraft-export.xlsx.csv' : 'datacraft-export.csv';
+                    mimeType = 'text/csv;charset=utf-8;';
+                    break;
+                case 'sql':
+                    const tableName = 'mock_data';
+                    content = `CREATE TABLE ${tableName} (\n  ` + cols.map(c => `\`${c.replace(/ /g, '_')}\` VARCHAR(255)`).join(',\n  ') + `\n);\n\n`;
+                    state.data.forEach(row => {
+                        const vals = cols.map(c => {
+                            if(row[c] === null) return 'NULL';
+                            return `'${String(row[c]).replace(/'/g, "''")}'`;
+                        }).join(', ');
+                        content += `INSERT INTO ${tableName} (${cols.map(c => `\`${c.replace(/ /g, '_')}\``).join(', ')}) VALUES (${vals});\n`;
+                    });
+                    filename = 'datacraft-export.sql';
+                    mimeType = 'application/sql';
+                    break;
+            }
+            
+            downloadFile(content, filename, mimeType);
+        }
+
+    </script>
+</body>
+</html>
